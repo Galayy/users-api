@@ -13,7 +13,7 @@ import javax.validation.constraints.*;
  * Must be valid JWT token
  */
 @ApiModel(description = "Must be valid JWT token")
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2020-03-24T13:41:48.118567+03:00[Europe/Minsk]")
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2020-03-24T14:09:10.456767+03:00[Europe/Minsk]")
 
 public class TokenRequest   {
   @JsonProperty("token")

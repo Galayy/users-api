@@ -1,4 +1,4 @@
-# Workplace Manager Backend
+# Users API
 
 ## Architecture
 
