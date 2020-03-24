@@ -1,0 +1,39 @@
+spring:
+  jpa:
+    properties:
+      hibernate.enable_lazy_load_no_trans: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+
+server:
+  port: ${PORT:8080}
+
+logging:
+  level:
+    org.hibernate.engine.jdbc.env.internal.LobCreatorBuilderImpl: ERROR
+
+app:
+  jwt:
+    secret:
+      key: ${APP_JWT_SECRET_KEY}
+
+---
+spring:
+  profiles: local
+  datasource:
+    url: jdbc:postgresql://localhost:5432/users-api
+    username: postgres
+    password: postgres
+
+app:
+  jwt:
+    secret:
+      key: "2Cd4Z22IEd8AfDN0bRFtDAeldaw9kH1854XMiTbkd57M0b99clYPcGp7KWDjjE7N8Wu2cItmAjyExEyjtVyBtA=="

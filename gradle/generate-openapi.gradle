@@ -1,0 +1,22 @@
+openApiGenerate {    
+    generatorName = "spring"
+    inputSpec = "$rootDir/src/main/resources/openapi/users.yml"
+    outputDir = project.rootDir.path
+    typeMappings = [OffsetDateTime: "java.time.Instant"]
+    configOptions = [
+            interfaceOnly          : true,
+            apiPackage             : "com.itechart.container.spring.users.generated.api",
+            modelPackage           : "com.itechart.container.spring.users.generated.model"
+    ]
+}
+
+tasks {
+    clean {
+        doFirst {
+            delete("$rootDir/src/main/java/com.itechart.container.spring.users.generated.api")
+            delete("$rootDir/src/main/java/com.itechart.container.spring.users.generated.model")
+        }
+    }
+    compileJava.dependsOn('clean')
+    compileJava.dependsOn('openApiGenerate')
+}

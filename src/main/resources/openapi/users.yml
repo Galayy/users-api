@@ -1,0 +1,359 @@
+openapi: 3.0.0
+info:
+  version: "1.0"
+  title: Users API
+
+servers:
+  - url: /api/v1
+
+tags:
+  - name: users
+
+paths:
+
+  # ========================================
+  # ===== Auth Api
+  # ========================================
+
+  /auth/refresh:
+    post:
+      tags:
+        - auth
+      operationId: refresh
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+        required: true
+      responses:
+        201:
+          description: Token is refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        401:
+          description: Expired or invalid JWT token
+      deprecated: false
+  /auth/signin:
+    post:
+      tags:
+        - auth
+      operationId: signIn
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInRequest'
+        description: signInRequest
+        required: true
+      responses:
+        201:
+          description: Login success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        400:
+          description: Invalid email
+        401:
+          description: Wrong login and/or password
+      deprecated: false
+  /auth/signup:
+    post:
+      tags:
+        - auth
+      operationId: signUp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpRequest'
+        description: signUpRequest
+        required: true
+      responses:
+        201:
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          description: Invalid email or phone
+        422:
+          description: User already exists or\and didn't logout
+      deprecated: false
+
+  # ========================================
+  # ===== Users Api
+  # ========================================
+
+  /users:
+    get:
+      tags:
+        - users
+      operationId: getUsers
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        403:
+          description: User trying to access admin's functionality
+      deprecated: false
+  /users/current:
+    get:
+      description: Requires log in
+      tags:
+        - users
+      operationId: getCurrentUser
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        404:
+          description: User already deleted or doesn't exist
+      security:
+        - JWT: []
+      deprecated: false
+  /users/{id}:
+    get:
+      description: Requires log in
+      tags:
+        - users
+      operationId: getUser
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          description: Invalid UUID
+        404:
+          description: User already deleted or doesn't exist
+      security:
+        - JWT: []
+      deprecated: false
+    delete:
+      description: >-
+        User can delete only his account, admin can delete all accounts, requires log in
+      tags:
+        - users
+      operationId: deleteUser
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        204:
+          description: No Content
+        400:
+          description: Invalid UUID
+        403:
+          description: User trying to delete another user
+        404:
+          description: User already deleted or doesn't exist
+      security:
+        - JWT: []
+      deprecated: false
+  /users/{id}/profile:
+    put:
+      description: Requires log in
+      tags:
+        - users
+      operationId: updateUser
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          description: Invalid phone
+        404:
+          description: User deleted or doesn't exist
+      security:
+        - JWT: []
+      deprecated: false
+
+components:
+
+  # ========================================
+  # ===== Models
+  # ========================================
+
+  schemas:
+    SignInRequest:
+      description: Can be successfully done only after sign up
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          pattern: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$'
+        password:
+          type: string
+          pattern: '^[A-Za-z0-9._%+-]{5,20}$'
+
+    SignUpRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          pattern: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$'
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+          format: phone
+          pattern: '^+[0-9 ]{5,20}$'
+          example: "+753 92 321 54 76"
+        password:
+          type: string
+          pattern: '^[A-Za-z0-9._%+-]{5,20}$'
+
+    TokenRequest:
+      description: Must be valid JWT token
+      type: object
+      properties:
+        token:
+          type: string
+
+    TokenResponse:
+      description: Must be valid JWT tokens
+      type: object
+      properties:
+        accessToken:
+          description: Living 1 hour
+          type: string
+        refreshToken:
+          description: Living 100 hours
+          type: string
+        accessTokenExpirationDate:
+          type: string
+          format: date-time
+        refreshTokenExpirationDate:
+          type: string
+          format: date-time
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        newFirstName:
+          type: string
+        newLastName:
+          type: string
+        newPhone:
+          type: string
+          format: phone
+          pattern: '^+[0-9 ]{5,20}$'
+          example: "+753 92 321 54 76"
+
+    User:
+      required:
+        - email
+        - password
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        role:
+          $ref: "#/components/schemas/UserRole"
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+          format: phone
+          example: "+753 92 321 54 76"
+        email:
+          type: string
+        password:
+          type: string
+          writeOnly: true
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+        deletedAt:
+          type: string
+          format: date-time
+          readOnly: true
+
+    UserRole:
+      type: string
+      readOnly: true
+      enum:
+        - "USER"
+        - "ADMIN"
+
+  # ========================================
+  # ===== Security
+  # ========================================
+
+  securitySchemes:
+    JWT:
+      type: apiKey
+      name: Authorization
+      in: header
+
+  # ========================================
+  # ===== Parameters
+  # ========================================
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        exclusiveMinimum: false
+        default: 1
+    Size:
+      name: size
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        exclusiveMinimum: false
+        default: 100
